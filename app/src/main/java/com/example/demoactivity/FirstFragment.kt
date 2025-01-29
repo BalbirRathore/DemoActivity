@@ -7,10 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
@@ -27,6 +32,11 @@ class FirstFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private val lazy by lazy {
+        //AppLogger.log("lazy init")
+        throw RuntimeException("lazy init")
+        "lazy"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +44,20 @@ class FirstFragment : Fragment() {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
+        try {
+            //AppLogger.log("lazy==$lazy")
+        } catch (e: Exception) {
+        }
+
+
+        try {
+            //AppLogger.log("lazy1==$lazy")
+        } catch (e: Exception) {
+        }
+
+        /* AppLogger.log("lazy==$lazy")
+         AppLogger.log("lazy1==$lazy")*/
     }
 
     override fun onCreateView(
@@ -49,19 +73,14 @@ class FirstFragment : Fragment() {
         val button = view.findViewById<Button>(R.id.button)
         button.setOnClickListener {
             //findNavController().navigate(R.id.actionFirstFragmentToSecondFragment)
-           val navOptions = NavOptions.Builder().setPopUpTo(R.id.firstFragment, true).build()
+            val navOptions = NavOptions.Builder().setPopUpTo(R.id.firstFragment, true).build()
             findNavController().navigate(
                 FirstFragmentDirections.actionFirstFragmentToSecondFragment(),
                 navOptions
             )
         }
-        var counter = 0
-        GlobalScope.launch {
-            while (true){
-                counter++
-                AppLogger.log("FirstFragment Running $counter")
-                delay(5000)
-            }
+        lifecycleScope.launch {
+            testCoroutine()
         }
     }
 
@@ -87,31 +106,57 @@ class FirstFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        AppLogger.log("FirstFragment onDestroy")
+        //AppLogger.log("FirstFragment onDestroy")
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        AppLogger.log("FirstFragment onDestroyView")
+       // AppLogger.log("FirstFragment onDestroyView")
     }
 
     override fun onDetach() {
         super.onDetach()
-        AppLogger.log("FirstFragment onDetach")
+        //AppLogger.log("FirstFragment onDetach")
     }
 
     override fun onPause() {
         super.onPause()
-        AppLogger.log("FirstFragment onPause")
+        //AppLogger.log("FirstFragment onPause")
     }
 
     override fun onStop() {
         super.onStop()
-        AppLogger.log("FirstFragment onStop")
+       // AppLogger.log("FirstFragment onStop")
     }
 
     override fun onStart() {
         super.onStart()
-        AppLogger.log("FirstFragment onStart")
+       // AppLogger.log("FirstFragment onStart")
+    }
+
+    private val scope = CoroutineScope(CoroutineName("ParentCoroutine"))
+    private suspend fun testCoroutine() {
+        //AppLogger.log("test")
+       val mainJob =scope.launch {
+            val job1 = launch {
+                while (true) {
+                    AppLogger.log("first child coroutine")
+                    //ensureActive()
+                    //delay(5000)
+                    //Thread.sleep(5000)
+                }
+            }
+            val job2 = launch {
+                AppLogger.log("second child coroutine")
+            }
+         /*  AppLogger.log("second child coroutine is going cancel")
+            delay(5)
+            job2.cancelAndJoin()
+           AppLogger.log("second child coroutine has been canceled")*/
+        }
+        AppLogger.log("main coroutine is going cancel")
+        delay(50)
+        mainJob.cancelAndJoin()
+        AppLogger.log("main coroutine has been canceled")
     }
 }
