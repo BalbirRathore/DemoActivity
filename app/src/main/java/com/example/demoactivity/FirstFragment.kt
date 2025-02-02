@@ -10,6 +10,8 @@ import android.widget.Button
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import com.example.demoactivity.coroutine.ExceptionHandlingTesting.testLaunch
+import com.example.demoactivity.coroutine.ExceptionHandlingTesting.testSuperVisorScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
@@ -80,8 +82,10 @@ class FirstFragment : Fragment() {
             )
         }
         lifecycleScope.launch {
-            testCoroutine()
+            //testCoroutine()
         }
+        //testLaunch()
+        testSuperVisorScope()
     }
 
     companion object {
