@@ -7,59 +7,113 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
-import kotlin.time.times
 
 
 object ExceptionHandlingTesting {
     fun testLaunch() {
         val scope = CoroutineScope(CoroutineName("ParentCoroutine"))
-        AppLogger.log("scope coroutineContext= ${scope.coroutineContext}")
+        AppLogger.logd("scope coroutineContext= ${scope.coroutineContext}")
         scope.launch {
-            AppLogger.log("coroutine name1  coroutineContext = ${this.coroutineContext}")
+            AppLogger.logd("coroutine name1  coroutineContext = ${this.coroutineContext}")
             try {
                 launch {
-                    AppLogger.log("coroutine name2 coroutineContext = ${this.coroutineContext}")
+                    AppLogger.logd("coroutine name2 coroutineContext = ${this.coroutineContext}")
                     throw RuntimeException("Uncaught Exception")
                 }
             } catch (e: Exception) {
-                AppLogger.log("Exception = $e")
+                AppLogger.logd("Exception = $e")
             }
 
         }
     }
 
-    fun testSuperVisorScope(){
+    fun testCoroutineScope(){
         val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            throwable.message?.let { AppLogger.log(it) }
+            throwable.message?.let { AppLogger.logd(it) }
         }
         val scope = CoroutineScope(CoroutineName("ParentCoroutine"))
         //AppLogger.log("scope coroutineContext= ${scope.coroutineContext}")
         scope.launch {
-            supervisorScope {
+              coroutineScope {
+                   AppLogger.logd("start first coroutine scope")
+                   val job1 = launch {
+                       val result = getResult(1)
+                       AppLogger.logd("Job11 result = $result")
+                   }
+                   val job2 = launch {
+                       val result = getResult(2)
+                       AppLogger.logd("Job12 result = $result")
+                  /*     try {
+                           val result = getResult(2)
+                           AppLogger.logd("Job12 result = $result")
+                       }
+                       catch (e: CancellationException) {
+                           AppLogger.loge("Job12 cancellation exception caught")
+                           throw e
+                       }
+                       catch (e: Exception) {
+                           AppLogger.loge("Job12 normal exception caught")
+                       }*/
+                   }
+                   val job3 = launch {
+                       val result = getResult(3)
+                       //ensureActive()
+                       AppLogger.logd("Job13 result = $result")
+                   }
+                  //delay(400)
+                  //job2.cancel()
+               }
+       /*     coroutineScope {
+                AppLogger.logd("start second coroutine scope")
                 val job1 = launch {
                     val result = getResult(1)
-                    AppLogger.log("Job1 result = $result")
+                    AppLogger.logd("Job21 result = $result")
                 }
                 val job2 = launch(exceptionHandler) {
                     val result = getResult(2)
-                    AppLogger.log("Job2 result = $result")
+                    AppLogger.logd("Job22 result = $result")
                 }
                 val job3 = launch {
                     val result = getResult(3)
-                    AppLogger.log("Job3 result = $result")
+                    AppLogger.logd("Job23 result = $result")
                 }
-                //delay(900)
-                //job2.cancel()
+            }*/
+
+        }
+    }
+
+
+    fun testMultipleLaunch(){
+        val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.message?.let { AppLogger.logd(it) }
+        }
+        val scope = CoroutineScope(CoroutineName("ParentCoroutine"))
+        //AppLogger.log("scope coroutineContext= ${scope.coroutineContext}")
+        scope.launch {
+                AppLogger.logd("start first coroutine scope")
+                val job1 = launch {
+                    val result = getResult(1)
+                    AppLogger.logd("Job11 result = $result")
+                }
+                val job2 = launch {
+                    val result = getResult(2)
+                    AppLogger.logd("Job12 result = $result")
+                }
+                val job3 = launch {
+                    val result = getResult(3)
+                    //ensureActive()
+                    AppLogger.logd("Job13 result = $result")
+                }
+                delay(400)
+                job2.cancel()
             }
         }
     }
 
-    suspend fun getResult(number: Int): Int {
+    private suspend fun getResult(number: Int): Int {
         delay(500 * number.toLong())
         if (number == 2) {
             throw RuntimeException("Job$number got  exception ")
         }
         return number * 2
     }
-}

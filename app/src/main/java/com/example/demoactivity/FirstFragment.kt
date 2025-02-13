@@ -7,17 +7,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import com.example.demoactivity.coroutine.ExceptionHandlingTesting.testLaunch
-import com.example.demoactivity.coroutine.ExceptionHandlingTesting.testSuperVisorScope
+import com.example.demoactivity.coroutine.AsyncTesting.testAsync
+import com.example.demoactivity.viewmodel.FirstFragmentViewModel
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
@@ -39,7 +38,7 @@ class FirstFragment : Fragment() {
         throw RuntimeException("lazy init")
         "lazy"
     }
-
+  private val viewModel by viewModels<FirstFragmentViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -80,12 +79,23 @@ class FirstFragment : Fragment() {
                 FirstFragmentDirections.actionFirstFragmentToSecondFragment(),
                 navOptions
             )
+
+            findNavController()
+            AppLogger.logd("")
         }
         lifecycleScope.launch {
             //testCoroutine()
         }
         //testLaunch()
-        testSuperVisorScope()
+       // testMultipleLaunch()
+        //testViewModel()
+        //viewModel.testViewModel()
+        //testAsync()
+        //loadData()
+        //main()
+        //testAsync2()
+        //cancellationExceptionExample()
+        testAsync()
     }
 
     companion object {
@@ -144,23 +154,23 @@ class FirstFragment : Fragment() {
        val mainJob =scope.launch {
             val job1 = launch {
                 while (true) {
-                    AppLogger.log("first child coroutine")
+                    AppLogger.logd("first child coroutine")
                     //ensureActive()
                     //delay(5000)
                     //Thread.sleep(5000)
                 }
             }
             val job2 = launch {
-                AppLogger.log("second child coroutine")
+                AppLogger.logd("second child coroutine")
             }
          /*  AppLogger.log("second child coroutine is going cancel")
             delay(5)
             job2.cancelAndJoin()
            AppLogger.log("second child coroutine has been canceled")*/
         }
-        AppLogger.log("main coroutine is going cancel")
+        AppLogger.logd("main coroutine is going cancel")
         delay(50)
         mainJob.cancelAndJoin()
-        AppLogger.log("main coroutine has been canceled")
+        AppLogger.logd("main coroutine has been canceled")
     }
 }

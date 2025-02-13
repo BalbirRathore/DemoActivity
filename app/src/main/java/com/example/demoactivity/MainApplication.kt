@@ -7,5 +7,10 @@ class MainApplication : Application() {
         super.onCreate()
         // Initialize Hilt
         // Initialize Timber
+       /* Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            // Custom handling of uncaught exceptions
+            AppLogger.loge("UncaughtException")
+            // Optionally restart the app, send a report, etc.
+        }*/
     }
 }
